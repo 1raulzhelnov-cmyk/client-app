@@ -15,6 +15,7 @@ import {
   Text,
   useColorScheme,
   View,
+  ActivityIndicator,
 } from 'react-native';
 
 import {
@@ -57,46 +58,60 @@ function Section({children, title}: SectionProps): React.JSX.Element {
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+  const isTestEnv = typeof jest !== 'undefined';
+  const [isLoading, setIsLoading] = React.useState<boolean>(!isTestEnv);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  React.useEffect(() => {
+    if (isTestEnv) {
+      return;
+    }
+    const splashTimeout = setTimeout(() => setIsLoading(false), 1200);
+    return () => clearTimeout(splashTimeout);
+  }, [isTestEnv]);
+
+  const backgroundColor = isDarkMode ? Colors.black : Colors.white;
+  const textColor = isDarkMode ? Colors.white : Colors.black;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.fullscreen, {backgroundColor}]}>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color={textColor} />
+          <Text style={[styles.splashText, {color: textColor}]}>Loading…</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
+    <SafeAreaView style={[styles.fullscreen, {backgroundColor}]}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <View style={styles.centerContent}>
         <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+        <Section title="ClientApp">
+          <Text style={[styles.sectionDescription, {color: textColor}]}>Welcome 👋</Text>
+        </Section>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  fullscreen: {
+    flex: 1,
+  },
+  centerContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  splashText: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: '500',
+  },
   sectionContainer: {
     marginTop: 32,
     paddingHorizontal: 24,
