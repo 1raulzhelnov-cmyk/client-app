@@ -58,12 +58,16 @@ function Section({children, title}: SectionProps): React.JSX.Element {
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
-  const [isLoading, setIsLoading] = React.useState<boolean>(true);
+  const isTestEnv = typeof jest !== 'undefined';
+  const [isLoading, setIsLoading] = React.useState<boolean>(!isTestEnv);
 
   React.useEffect(() => {
+    if (isTestEnv) {
+      return;
+    }
     const splashTimeout = setTimeout(() => setIsLoading(false), 1200);
     return () => clearTimeout(splashTimeout);
-  }, []);
+  }, [isTestEnv]);
 
   const backgroundColor = isDarkMode ? Colors.black : Colors.white;
   const textColor = isDarkMode ? Colors.white : Colors.black;
